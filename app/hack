@@ -1,0 +1,189 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DKWIN PREDICTOR BY ARANYA</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+  html,body{margin:0;padding:0;height:100%;background:#000;font-family:Poppins,sans-serif;}
+  iframe{width:100%;height:100vh;border:0;position:relative;z-index:1;}
+
+  /* Login overlay (old design) */
+  #loginOverlay{
+    position:fixed;inset:0;
+    background:linear-gradient(180deg,rgba(3,8,20,0.92),rgba(6,12,30,0.96));
+    display:flex;align-items:center;justify-content:center;
+    z-index:10000;flex-direction:column;
+    color:#fff;font-family:Poppins;
+    -webkit-backdrop-filter: blur(4px);backdrop-filter: blur(4px);
+  }
+  #loginBox{
+    background:linear-gradient(180deg,#081226,#07101a);
+    padding:22px 25px;border-radius:14px;
+    text-align:center;
+    box-shadow:0 8px 30px rgba(0,0,0,0.6),0 2px 8px rgba(0,255,255,0.05) inset;
+  }
+  #loginBox .title{font-weight:700;color:#5ff7ff;font-size:20px;letter-spacing:1px;margin-bottom:8px;}
+  #loginBox .subtitle{color:#ff5cff;font-weight:600;margin-bottom:18px;}
+  #loginBox input{
+    width:100%;padding:12px;border-radius:8px;border:none;margin-top:12px;
+    background:rgba(255,255,255,0.03);color:#cfeff3;font-size:15px;outline:none;
+  }
+  #loginBox button{
+    margin-top:14px;padding:10px 20px;border:none;border-radius:8px;
+    background:#14f0ef;color:#012b2a;font-weight:700;cursor:pointer;
+  }
+  #loginMsg{margin-top:8px;font-size:13px;color:#ffb3b3;}
+  .smallBtns{display:flex;gap:12px;justify-content:center;margin-top:12px;}
+  .ghost{padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.03);color:#fff;cursor:pointer;}
+
+  /* Compact signal overlay */
+  #overlay{
+    position:fixed;top:20px;left:15px;
+    width:110px;padding:6px;
+    background:rgba(0,0,0,0.85);
+    border-radius:8px;
+    color:#00fff0;
+    text-align:center;
+    box-shadow:0 4px 12px rgba(0,255,255,0.2);
+    z-index:9999;
+    touch-action:none;
+    user-select:none;
+    cursor:grab;
+    display:none; /* hide until login */
+  }
+  #overlay:active{cursor:grabbing;}
+  #time{font-size:12px;color:#7df9ff}
+  #timer{font-size:11px;color:#fff;margin-top:3px}
+  #signal{margin-top:4px;font-size:16px;font-weight:700}
+  .big{color:#ffcc00}
+  .small{color:#00ff80}
+</style>
+</head>
+<body>
+
+<iframe src="https://dkwin.org/#/login"></iframe>
+
+<!-- Login Overlay -->
+<div id="loginOverlay">
+  <div id="loginBox">
+    <div class="title">SS™ OWNER ARANYA</div>
+    <div class="subtitle">WINGO 30S VIP MOD</div>
+    <input type="password" id="pwInput" placeholder="Enter Password" autocomplete="off"/>
+    <button id="loginBtn">Login</button>
+    <div id="loginMsg"></div>
+    <div class="smallBtns">
+      <div class="ghost" id="join">Join Telegram</div>
+      <div class="ghost" id="hide">HIDE</div>
+    </div>
+  </div>
+</div>
+
+<!-- Signal Overlay -->
+<div id="overlay">
+  <div id="time">--:--:--</div>
+  <div id="timer">--</div>
+  <div id="signal">--</div>
+</div>
+
+<script>
+/* ---------- Password & login ---------- */
+const CORRECT_PASSWORD='ARANYA';
+const loginOverlay=document.getElementById('loginOverlay');
+const overlay=document.getElementById('overlay');
+const pwInput=document.getElementById('pwInput');
+const loginBtn=document.getElementById('loginBtn');
+const loginMsg=document.getElementById('loginMsg');
+
+function showOverlay(){ overlay.style.display='block'; loginOverlay.style.display='none'; }
+
+function tryLogin(){
+  const val=(pwInput.value||'').trim();
+  if(val===CORRECT_PASSWORD){ showOverlay(); }
+  else{ loginMsg.textContent='Incorrect password'; pwInput.value=''; }
+}
+
+loginBtn.addEventListener('click',tryLogin);
+pwInput.addEventListener('keydown',e=>{ if(e.key==='Enter') tryLogin(); });
+
+document.getElementById('join').addEventListener('click', ()=>{ window.open('https://t.me/hgzybestbdt','_blank'); });
+document.getElementById('hide').addEventListener('click', ()=>{ loginOverlay.style.display='none'; overlay.style.display='none'; });
+
+/* ---------- Timer & Signal ---------- */
+const STORAGE_KEY='dkwin_logic_start';
+const CYCLE=[1,2,3,4,5,3,1,5,4,2];
+let startTime=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
+if(!startTime){ startTime=Date.now(); localStorage.setItem(STORAGE_KEY,String(startTime)); }
+
+function now(){return Date.now();}
+function pad(n){return String(n).padStart(2,'0');}
+function getSlot(){ 
+  const diffMin=Math.floor((now()-startTime)/(1000*60));
+  const pos=diffMin% CYCLE.length;
+  return CYCLE[pos]-1;
+}
+function getSecond(){ return 29 - (new Date().getSeconds()%30); }
+
+/* ---------- Logic patterns ---------- */
+const logics=[
+  ["BIG","SMALL","BIG","BIG","SMALL","BIG","SMALL","BIG"],
+  ["SMALL","BIG","SMALL","BIG","BIG","SMALL","SMALL","BIG"],
+  ["BIG","BIG","SMALL","BIG","SMALL","SMALL","BIG","SMALL"],
+  ["SMALL","BIG","BIG","SMALL","BIG","SMALL","BIG","SMALL"],
+  ["BIG","SMALL","SMALL","BIG","BIG","SMALL","BIG","SMALL"]
+];
+
+let logicIndex=getSlot();
+let step=0;
+
+function nextSignal(){
+  const currentSlot=getSlot();
+  if(currentSlot!==logicIndex){ logicIndex=currentSlot; step=0; }
+  const pattern=logics[logicIndex];
+  const signal=pattern[step%pattern.length];
+  step++;
+  return signal;
+}
+
+/* ---------- UI ---------- */
+const timeEl=document.getElementById('time');
+const timerEl=document.getElementById('timer');
+const sigEl=document.getElementById('signal');
+let lastSignalTick=-1;
+
+function updateUI(){
+  const d=new Date();
+  timeEl.textContent=`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  timerEl.textContent=`${getSecond()}s`;
+
+  // Signal update ONLY once per 30s
+  const currentTick = Math.floor(now()/30000);
+  if(currentTick !== lastSignalTick){
+    lastSignalTick = currentTick;
+    const s = nextSignal();
+    sigEl.textContent = s;
+    sigEl.className = s==='BIG'?'big':'small';
+  }
+}
+setInterval(updateUI,300);
+updateUI();
+
+/* ---------- Drag overlay ---------- */
+const box=document.getElementById('overlay');
+let dragging=false,dx=0,dy=0,tx=0,ty=0;
+function start(e){ dragging=true; const p=e.touches?e.touches[0]:e; dx=p.clientX-tx; dy=p.clientY-ty; }
+function move(e){ if(!dragging) return; const p=e.touches?e.touches[0]:e; tx=p.clientX-dx; ty=p.clientY-dy;
+  if(tx<0)tx=0; if(ty<0)ty=0; if(tx>window.innerWidth-120)tx=window.innerWidth-120;
+  if(ty>window.innerHeight-90)ty=window.innerHeight-90; box.style.transform=`translate(${tx}px,${ty}px)`; }
+function end(){dragging=false;}
+box.addEventListener('mousedown',start);
+box.addEventListener('mousemove',move);
+document.addEventListener('mouseup',end);
+box.addEventListener('touchstart',start,{passive:true});
+box.addEventListener('touchmove',move,{passive:false});
+document.addEventListener('touchend',end);
+</script>
+
+</body>
+</html>
